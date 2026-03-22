@@ -1,5 +1,21 @@
-## Next.js App Router Course - Starter
+# nextjs-dashboard
 
-This is the starter template for the Next.js App Router Course. It contains the starting code for the dashboard application.
+WDD 430 Week 02 project based on the Learn Next.js dashboard tutorial.
 
-For more information, see the [course curriculum](https://nextjs.org/learn) on the Next.js Website.
+## Completed scope
+- Project setup and starter boot
+- Global styling with Tailwind and CSS Modules
+- Font and image optimization
+- Dashboard nested routes and shared layout
+- Navigation with active tab highlighting through Chapter 5
+
+## Routes implemented
+- /
+- /dashboard
+- /dashboard/invoices
+- /dashboard/customers
+
+## Run locally
+```bash
+npm install
+npm run dev
