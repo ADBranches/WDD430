@@ -7,6 +7,7 @@ import type {
   Revenue,
 } from './definitions';
 import { formatCurrency } from './utils';
+import { unstable_noStore as noStore } from 'next/cache';
 
 if (!process.env.POSTGRES_URL) {
   throw new Error("POSTGRES_URL is missing. Check your .env.local file.");
@@ -19,6 +20,8 @@ const sql = postgres(process.env.POSTGRES_URL, {
 const ITEMS_PER_PAGE = 6;
 
 export async function fetchRevenue() {
+  noStore();
+
   try {
     const data = await sql<Revenue[]>`
       SELECT * FROM revenue
@@ -32,6 +35,8 @@ export async function fetchRevenue() {
 }
 
 export async function fetchLatestInvoices() {
+  noStore();
+
   try {
     const data = await sql<LatestInvoiceRaw[]>`
       SELECT
@@ -59,6 +64,8 @@ export async function fetchLatestInvoices() {
 }
 
 export async function fetchCardData() {
+  noStore();
+
   try {
     const invoiceCountPromise = sql<{ count: string }[]>`
       SELECT COUNT(*) FROM invoices
@@ -100,6 +107,8 @@ export async function fetchFilteredInvoices(
   query: string,
   currentPage: number,
 ) {
+  noStore();
+
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
   try {
@@ -132,6 +141,8 @@ export async function fetchFilteredInvoices(
 }
 
 export async function fetchInvoicesPages(query: string) {
+  noStore();
+
   try {
     const count = await sql<{ count: string }[]>`
       SELECT COUNT(*)
@@ -153,8 +164,9 @@ export async function fetchInvoicesPages(query: string) {
   }
 }
 
-
 export async function fetchCustomers(): Promise<CustomerField[]> {
+  noStore();
+
   try {
     const data = await sql<CustomerField[]>`
       SELECT id, name
@@ -172,6 +184,8 @@ export async function fetchCustomers(): Promise<CustomerField[]> {
 export async function fetchInvoiceById(
   id: string,
 ): Promise<InvoiceForm | undefined> {
+  noStore();
+
   try {
     const data = await sql<InvoiceForm[]>`
       SELECT id, customer_id, amount, status
