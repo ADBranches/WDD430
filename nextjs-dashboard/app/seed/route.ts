@@ -2,7 +2,13 @@ import bcrypt from 'bcrypt';
 import postgres from 'postgres';
 import { invoices, customers, revenue, users } from '../lib/placeholder-data';
 
-const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+if (!process.env.POSTGRES_URL) {
+  throw new Error('POSTGRES_URL is missing. Fix .env.local first.');
+}
+
+const sql = postgres(process.env.POSTGRES_URL, {
+  ssl: process.env.POSTGRES_URL.includes('localhost') ? false : 'require',
+});
 
 async function seedUsers() {
   await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
@@ -39,7 +45,8 @@ async function seedInvoices() {
       customer_id UUID NOT NULL,
       amount INT NOT NULL,
       status VARCHAR(255) NOT NULL,
-      date DATE NOT NULL
+      date DATE NOT NULL,
+      UNIQUE(customer_id, amount, status, date)
     );
   `;
 
@@ -48,7 +55,7 @@ async function seedInvoices() {
       (invoice) => sql`
         INSERT INTO invoices (customer_id, amount, status, date)
         VALUES (${invoice.customer_id}, ${invoice.amount}, ${invoice.status}, ${invoice.date})
-        ON CONFLICT (id) DO NOTHING;
+        ON CONFLICT (customer_id, amount, status, date) DO NOTHING;
       `,
     ),
   );
@@ -104,15 +111,19 @@ async function seedRevenue() {
 
 export async function GET() {
   try {
-    await sql.begin(() => [
-      seedUsers(),
-      seedCustomers(),
-      seedInvoices(),
-      seedRevenue(),
-    ]);
+    await seedUsers();
+    await seedCustomers();
+    await seedInvoices();
+    await seedRevenue();
 
     return Response.json({ message: 'Database seeded successfully' });
   } catch (error) {
-    return Response.json({ error }, { status: 500 });
+    console.error('Seed failed:', error);
+    return Response.json(
+      {
+        error: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 },
+    );
   }
 }
